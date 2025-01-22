@@ -1,0 +1,371 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7.6 Anti-Bullying Quiz</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
+        
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --success: #22c55e;
+            --error: #ef4444;
+            --background: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--background);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            color: var(--text);
+            font-size: 18px;
+        }
+
+        .quiz-container {
+            background: var(--card);
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                        0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-screen {
+            text-align: center;
+        }
+
+        .welcome-screen h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress {
+            height: 8px;
+            background: var(--primary);
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: width 0.5s ease;
+        }
+
+        .question {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 1.5rem 0;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: grid;
+            gap: 1.25rem;
+            margin-top: 2rem;
+        }
+
+        .options button {
+            background: transparent;
+            border: 2px solid #e2e8f0;
+            padding: 1.25rem 1.75rem;
+            border-radius: 16px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+            text-align: left;
+        }
+
+        .options button:hover {
+            border-color: var(--primary);
+            background: #f8fafc;
+            transform: translateY(-2px);
+        }
+
+        .options button.correct {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .options button.wrong {
+            background: var(--error);
+            border-color: var(--error);
+            color: white;
+        }
+
+        .button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 2rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .completion-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .completion-message h2 {
+            margin-bottom: 1rem;
+        }
+
+        .fireworks {
+            font-size: 2rem;
+            margin: 1rem 0;
+            animation: bounce 0.5s ease infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: scale(1); }
+            to { transform: scale(1.2); }
+        }
+
+        .quiz-content {
+            display: none;
+        }
+
+        @media (max-width: 640px) {
+            .quiz-container {
+                padding: 1.5rem;
+                border-radius: 20px;
+            }
+            .question {
+                font-size: 1.5rem;
+            }
+            .options button {
+                padding: 0.875rem 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="progress" id="progress" style="width: 0%;"></div>
+        <div class="welcome-screen" id="welcomeScreen">
+            <h1>7.6 Anti-Bullying Quiz (Jan23rd)</h1>
+            <button class="button" onclick="startQuiz()">Start Quiz</button><iframe width="560" height="315" src="https://www.youtube.com/embed/gkCfq3xsrsM?si=XEG1CxLdKmuttwPr" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+        <div class="quiz-content" id="quizContent">
+            <div class="question" id="question"></div>
+            <div class="options" id="options"></div>
+            <button class="button" id="nextButton" onclick="nextQuestion()" style="display: none;">Next</button>
+        </div>
+    </div>
+
+    <div class="completion-message" id="completionMessage">
+        <h2>Congratulations! 🎉</h2>
+        <div class="fireworks">🎆 🎇 ✨</div>
+        <p>You've completed the Anti-Bullying Quiz!</p>
+        <button class="button" onclick="restartQuiz()">Try Again</button>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "When students feel safe, they are more likely to _______ in learning activities.",
+                options: [
+                    { text: "Skip", correct: false },
+                    { text: "Argue with everyone", correct: false },
+                    { text: "Engage actively", correct: true },
+                    { text: "Daydream", correct: false }
+                ]
+            },
+            {
+                question: "What will happen to learners if they don't feel safe and respected in school?",
+                options: [
+                    { text: "Have good mental and emotional well-being", correct: false },
+                    { text: "Have strong focus and full effort in learning", correct: false },
+                    { text: "Be afraid of asking questions or taking risks in learning new things", correct: true },
+                    { text: "Have great development in social skills", correct: false }
+                ]
+            },
+            {
+                question: "Hendon School has a _______ stance on bullying.",
+                options: [
+                    { text: "Zero-tolerance", correct: true },
+                    { text: "Tolerance but with warnings", correct: false },
+                    { text: "Flexible", correct: false },
+                    { text: "No formal policy", correct: false }
+                ]
+            },
+            {
+                question: "How to report bullying at Hendon School?",
+                options: [
+                    { text: "Tell a trusted member of staff ASAP", correct: false },
+                    { text: "Use SHARP ASAP", correct: false },
+                    { text: "Go to C6 during lunch ASAP", correct: false },
+                    { text: "All of the above", correct: true }
+                ]
+            },
+            {
+                question: "These are bullying behaviour. Which one is physical?",
+                options: [
+                    { text: "Sending threatening messages", correct: false },
+                    { text: "Name-calling", correct: false },
+                    { text: "Pushing and shoving", correct: true },
+                    { text: "Spreading rumors", correct: false }
+                ]
+            },
+            {
+                question: "These are bullying behaviour. Which one is cyberbullying?",
+                options: [
+                    { text: "Pushing or touching someone", correct: false },
+                    { text: "Stealing cash for lunch", correct: false },
+                    { text: "Spreading rumors online", correct: true },
+                    { text: "Drawing on someone's books", correct: false }
+                ]
+            },
+            {
+                question: "These are bullying behaviour. Which one is verbal?",
+                options: [
+                    { text: "Name-calling: fat, ugly, donkey, stupid...", correct: false },
+                    { text: "Gender discrimination", correct: false },
+                    { text: "Racial discrimination", correct: false },
+                    { text: "All of the above and anything you don't want other people say to your mum", correct: true }
+                ]
+            },
+            {
+                question: "What should you do first if you witness bullying?",
+                options: [
+                    { text: "Ignore it", correct: false },
+                    { text: "Join in", correct: false },
+                    { text: "Report it to a trusted staff, or on SHARP asap", correct: true },
+                    { text: "Film it on your phone", correct: false }
+                ]
+            },
+            {
+                question: "Which type of bullying has already happened and been reported in our form?",
+                options: [
+                    { text: "Physical bullying", correct: false },
+                    { text: "Verbal bullying", correct: false },
+                    { text: "Cyberbullying", correct: true },
+                    { text: "Physical and Verbal bullying", correct: false }
+                ]
+            },
+            {
+                question: "What is not a potential long-term effect of bullying on victims?",
+                options: [
+                    { text: "Lower self-esteem", correct: false },
+                    { text: "Lower academic performance", correct: false },
+                    { text: "Better mental health", correct: true },
+                    { text: "Lower social skills", correct: false }
+                ]
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startQuiz() {
+            document.getElementById("welcomeScreen").style.display = "none";
+            document.getElementById("quizContent").style.display = "block";
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const questionElement = document.getElementById("question");
+            const optionsElement = document.getElementById("options");
+            const progressElement = document.getElementById("progress");
+            const currentQuestion = questions[currentQuestionIndex];
+
+            questionElement.textContent = currentQuestion.question;
+            optionsElement.innerHTML = "";
+
+            // Create a copy of options and shuffle them
+            const shuffledOptions = shuffleArray([...currentQuestion.options]);
+
+            shuffledOptions.forEach(option => {
+                const button = document.createElement("button");
+                // Add an emoji for each option
+                button.textContent = option.text;
+                button.onclick = () => checkAnswer(button, option.correct);
+                optionsElement.appendChild(button);
+            });
+
+            progressElement.style.width = `${((currentQuestionIndex) / questions.length) * 100}%`;
+        }
+
+        function checkAnswer(button, correct) {
+            // If the user chooses correctly:
+            if (correct) {
+                button.classList.add("correct");
+                // Disable all other buttons
+                const buttons = document.querySelectorAll(".options button");
+                buttons.forEach(btn => btn.disabled = true);
+                // Show Next button
+                document.getElementById("nextButton").style.display = "block";
+            } else {
+                // Mark only the chosen button as wrong and disable it,
+                // but leave other buttons active so the user can try again
+                button.classList.add("wrong");
+                button.disabled = true;
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+                document.getElementById("nextButton").style.display = "none";
+            } else {
+                document.getElementById("completionMessage").style.display = "block";
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            document.getElementById("completionMessage").style.display = "none";
+            document.getElementById("quizContent").style.display = "none";
+            document.getElementById("welcomeScreen").style.display = "block";
+            document.getElementById("progress").style.width = "0%";
+        }
+    </script>
+</body>
+</html>
